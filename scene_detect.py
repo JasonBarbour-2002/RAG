@@ -36,8 +36,8 @@ def split_video_into_scenes(video_path, threshold=5.0, output_dir=''):
     video.release()
     print(f"Scenes saved to {output_dir}")
     return scene_list
-# Example usage
 
+# Example usage
 if __name__ == "__main__":
     video_path = "RAG/data/video.mp4"
     output_dir = "RAG/Processed/Slides"

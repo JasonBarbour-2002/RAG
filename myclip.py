@@ -37,7 +37,7 @@ class CLIP:
             image = Image.open(os.path.join(path, f))
             self.images.append(image)
         
-        if precompute_path:
+        if precompute_path and os.path.exists(precompute_path + "/image_features.pt"):
             self.image_features = torch.load(precompute_path + "/image_features.pt")
             return self.image_features, self.images
         on_GPU = torch.stack([self.preprocess(image) for image in self.images]).to(self.device)

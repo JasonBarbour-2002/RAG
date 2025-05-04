@@ -112,7 +112,7 @@ def run_query():
     my_clip = load_clip()
     sentence_model = load_sentences()
     Dir = "Processed/Slides"
-    topk_times_clip, topk_sim =  my_clip.get_image_times(query, sim_algo, precompute_path=Dir, path=Dir, threshold=get_threshold("CLIP"))
+    topk_times_clip, topk_sim =  my_clip.get_image_times(query, sim_algo, precompute_path=Dir, path=Dir, save_path=Dir, threshold=get_threshold("CLIP"))
     if len(topk_times_clip) == 0:
         st.session_state.time_clip = -1
     else:

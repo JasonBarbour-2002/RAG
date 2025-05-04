@@ -2144,3 +2144,81 @@
 
 537
 01:00:21,239 --> 01:00:27,400
+ Yeah, I don't think there are any more questions. I will just once again announce the parameterized
+
+538
+01:00:27,400 --> 01:00:33,079
+ algorithm 301 workshop, which is going to happen in December. And the link has been posted once
+
+539
+01:00:33,079 --> 01:00:38,679
+ again in the chat. Some advanced topics in parameterized complexity will be discussed.
+
+540
+01:00:38,680 --> 01:00:41,560
+ Those interested can have a look and register for it.
+
+541
+01:00:43,640 --> 01:00:57,960
+ And yeah, if there are any more questions, please ask away.
+
+542
+01:01:08,680 --> 01:01:15,000
+ Oh, so anyone can register for the
+
+543
+01:01:18,360 --> 01:01:20,440
+ school? Yes, yes, anyone can.
+
+544
+01:01:23,400 --> 01:01:27,160
+ Yeah, it's free and it's online and yeah, it's open to everyone.
+
+545
+01:01:28,040 --> 01:01:30,360
+ Awesome. So I can share it with my students as well.
+
+546
+01:01:30,360 --> 01:01:34,920
+ Of course, of course, please do. Yeah, that would be good. And we assumed some basic
+
+547
+01:01:34,920 --> 01:01:40,440
+ understanding of parameterized algorithms, but we have already shared a link on the page
+
+548
+01:01:40,440 --> 01:01:46,680
+ where students can go and go through some previous lectures in parameterized algorithms if
+
+549
+01:01:47,240 --> 01:01:50,360
+ they wish to just brace up or revise stuff.
+
+550
+01:01:57,639 --> 01:02:03,720
+ All right, so I guess, okay, I don't think there are any more questions.
+
+551
+01:02:04,360 --> 01:02:10,920
+ So maybe this is a good time to wrap up. So thank you once again Professor Amedoh for
+
+552
+01:02:10,920 --> 01:02:15,320
+ agreeing to give the talk. It was really nice to have you and it was really good to have something
+
+553
+01:02:15,320 --> 01:02:20,200
+ different than what we usually hear in every parameterized complexity talk, at least most
+
+554
+01:02:20,200 --> 01:02:27,000
+ of them. So and yeah, these are really interesting problems to think upon. And thank you to the
+
+555
+01:02:27,000 --> 01:02:32,600
+ audience for being with us. And that's it for today. We wrap up. See you all next week. Thank
+
+556
+01:02:32,599 --> 01:02:37,400
+ you. Bye. Thank you. Bye bye.
+
