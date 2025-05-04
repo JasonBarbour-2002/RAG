@@ -43,7 +43,7 @@ Use the `download_youtube.py` script. Replace the `video_url` variable in the sc
 Use the `preprocess.py` script. It performs the following steps:
 
 - 🎧 **Audio Extraction**: Extracts audio from the video  
-- 🗣️ **Transcription**: Transcribes audio using [Whisper](https://openai.com/research/whisper) with [Faste-Whisper]{https://github.com/SYSTRAN/faster-whisper}
+- 🗣️ **Transcription**: Transcribes audio using [Whisper](https://openai.com/research/whisper) with [Faste-Whisper](https://github.com/SYSTRAN/faster-whisper)
 - 📑 **Chunking**: Splits the transcription into text chunks  
 - 🎞️ **Scene Detection**: Extracts scenes from the video
 
