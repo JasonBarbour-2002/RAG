@@ -1,11 +1,11 @@
-
-import os
+import atexit
 import pandas as pd
 import streamlit as st
 from myclip import CLIP
 from sentences import Sentences
 from utils import cos_sim, faiss_similarity, bm25_similarity, tfidf_similarity, hnsw, ivfflat
 from lexical import LexicalSearch
+from SQL import SQL
 
 st.set_page_config(
     page_title="RAG",
@@ -14,6 +14,15 @@ st.set_page_config(
 )
 
 NO_EMBEDDING_MODELS = ['BM25', 'TF-IDF']
+
+# Init SQL 
+sql = SQL()
+sql.connect()
+
+def cleanup():
+    sql.close()
+    
+atexit.register(cleanup)
 
 @st.cache_resource
 def load_clip():
@@ -57,17 +66,17 @@ def get_seach_algorithm():
     option = st.session_state.get("option", "KNN")
     match option:
         case "KNN":
-            return cos_sim
+            return cos_sim, {}
         case "FAISS":
-            return faiss_similarity
+            return faiss_similarity, {}
         case "IVFFLAT index":
-           return ivfflat
+           return ivfflat, {"sql": sql}
         case "HNSW index":
-            return hnsw
+            return hnsw, {"sql": sql}
         case "TF-IDF":
-            return tfidf_similarity
+            return tfidf_similarity, {}
         case "BM25":
-            return bm25_similarity
+            return bm25_similarity, {}
         case _:
             raise ValueError("Invalid algorithm selected.")
 
@@ -93,13 +102,12 @@ def get_threshold(algorithm):
     else:
         dict_threshold = {
             "TF-IDF": 0.3,
-            "BM25": 15
         }
         return dict_threshold.get(option, None)
                 
 def run_query():
     query = st.session_state.query
-    sim_algo = get_seach_algorithm()
+    sim_algo, kwargs = get_seach_algorithm()
     if st.session_state.get("option", "KNN") in NO_EMBEDDING_MODELS:
         lexical = LexicalSearch()
         topk_times_lexical, topk_sim = lexical.get_top_k_documents(query, sim_algo, threshold=get_threshold("Lexical"))
@@ -112,14 +120,14 @@ def run_query():
     my_clip = load_clip()
     sentence_model = load_sentences()
     Dir = "Processed/Slides"
-    topk_times_clip, topk_sim =  my_clip.get_image_times(query, sim_algo, precompute_path=Dir, path=Dir, save_path=Dir, threshold=get_threshold("CLIP"))
+    topk_times_clip, topk_sim =  my_clip.get_image_times(query, sim_algo, precompute_path=Dir, path=Dir, save_path=Dir, threshold=get_threshold("CLIP"), **kwargs)
     if len(topk_times_clip) == 0:
         st.session_state.time_clip = -1
     else:
         st.session_state.time_clip = to_time(topk_times_clip[0])
         st.session_state.sim_clip = topk_sim[0]
     Dir = "Processed"
-    topk_times_sentence, topk_sim = sentence_model.get_top_k_documents(query, sim_algo, precompute_path=Dir, save_path=Dir, threshold=get_threshold("Sentences"))
+    topk_times_sentence, topk_sim = sentence_model.get_top_k_documents(query, sim_algo, precompute_path=Dir, save_path=Dir, threshold=get_threshold("Sentences"), **kwargs)
     if len(topk_times_sentence) == 0:
         st.session_state.time_sentence = -1
     else:
@@ -162,7 +170,7 @@ def main():
             if time_sentence == -1:
                 st.info("No results found in the transcript.")
             else:
-                st.info(f"Results found in the transcript at {time_sentence}.\n Similarity: {st.session_state.sim_sentence}")
+                st.info(f"Results found in the transcript at {time_sentence}.\t Similarity: {st.session_state.sim_sentence:.2f}")
                 st.button("Go to time code", on_click=update_sentence, key="time_sentence_button")
     else:
         time_clip = st.session_state.get("time_clip", None)
@@ -170,7 +178,7 @@ def main():
             if time_clip == -1:
                 st.info("No results found in the slides.")
             else:
-                st.info(f"Results found in the slides at {time_clip}.\n Similarity: {st.session_state.sim_clip}")
+                st.info(f"Results found in the slides at {time_clip}.\t Similarity: {st.session_state.sim_clip:.2f}")
                 st.button("Go to time code", on_click=update_clip, key="time_clip_button")
             
         time_sentence = st.session_state.get("time_sentence", None)
@@ -178,7 +186,7 @@ def main():
             if time_sentence == -1:
                 st.info("No results found in the transcript.")
             else:
-                st.info(f"Results found in the transcript at {time_sentence}.\n Similarity: {st.session_state.sim_sentence}")
+                st.info(f"Results found in the transcript at {time_sentence}.\t Similarity: {st.session_state.sim_sentence:.2f}")
                 st.button("Go to time code", on_click=update_sentence, key="time_sentence_button")
         
 

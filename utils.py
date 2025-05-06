@@ -1,7 +1,6 @@
 import faiss
 import numpy as np
 from SQL import SQL
-import streamlit as st
 from rank_bm25 import BM25Okapi
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
@@ -13,7 +12,7 @@ def cos_sim(query, data, topk=5, threshold=None):
     query = query / query.norm(dim=-1, keepdim=True)
     data = data / data.norm(dim=-1, keepdim=True)
     sim = (query @ data.T)
-    print(sim.shape)
+
     most_similar_index = sim.argsort(dim=-1, descending=True)[:, :topk]
     most_similar_values = sim.gather(1, most_similar_index)
     
@@ -28,21 +27,47 @@ def cos_sim(query, data, topk=5, threshold=None):
 
     return most_similar_index, most_similar_values
 
+def cos_sim_numpy(query, data, topk=5, threshold=None):
+    """
+    Compute cosine similarity between two numpy arrays.
+    """
+    query = query / np.linalg.norm(query, axis=1, keepdims=True)
+    data = data / np.linalg.norm(data, axis=1, keepdims=True)
+    sim = np.dot(query, data.T)
 
-def faiss_similarity(query, data, topk=5, threshold=None):
+    most_similar_index = np.argsort(sim, axis=-1)[:, -topk:][:, ::-1]
+    most_similar_values = np.take_along_axis(sim, most_similar_index, axis=-1)
+    
+    # Filter out values below the threshold
+    if threshold is not None:
+        mask = most_similar_values > threshold
+        most_similar_index = most_similar_index[mask]
+        most_similar_values = most_similar_values[mask]
+        
+    return most_similar_index, most_similar_values
+
+
+def faiss_similarity(query, data, topk=5, threshold=None, index=None):
     """
     Compute cosine similarity using FAISS.
     """
-    query = query / query.norm(dim=-1, keepdim=True)
-    data = data / data.norm(dim=-1, keepdim=True)
-    
-    # Convert to numpy arrays
-    query_np = query.cpu().numpy()
-    data_np = data.cpu().numpy()
+    if not isinstance(query, np.ndarray):
+        query = query / query.norm(dim=-1, keepdim=True)
+        data = data / data.norm(dim=-1, keepdim=True)
+        # Convert to numpy arrays
+        query_np = query.cpu().numpy()
+        data_np = data.cpu().numpy()
+    else:
+        query = query / np.linalg.norm(query, axis=1, keepdims=True)
+        data = data / np.linalg.norm(data, axis=1, keepdims=True)
+        # Convert to numpy arrays
+        query_np = query
+        data_np = data
     
     # Create FAISS index
-    index = faiss.IndexFlatIP(data_np.shape[1])
-    index.add(data_np)
+    if index is None:
+        index = faiss.IndexFlatIP(data_np.shape[1])
+        index.add(data_np)
     
     # Search for the topk nearest neighbors
     similarities, indices = index.search(query_np, topk)
@@ -68,7 +93,7 @@ def bm25_similarity(query, data, topk=5, threshold=0.25):
     topk_scores = scores[topk_indices]
     # Filter out values below the threshold
     if threshold is not None:
-        mask = np.abs(topk_scores) > threshold
+        mask = topk_scores > threshold
         topk_indices = topk_indices[mask]
         topk_scores = topk_scores[mask]
     return topk_indices, topk_scores
@@ -99,19 +124,27 @@ def tfidf_similarity(query, data, topk=5, threshold=0.25):
     return topk_indices, topk_scores
 
 
-def ivfflat(query, data, topk=5, threshold=None):
+def ivfflat(query, data, topk=5, threshold=None, sql=None):
     """
     Compute Ivfflat similarity.
     """
-    data = data / data.norm(dim=-1, keepdim=True)
-    query = query / query.norm(dim=-1, keepdim=True)
-    
-    # Convert to numpy arrays
-    query_np = query.cpu().numpy().squeeze().flatten()
-    data_np = data.cpu().numpy().squeeze()
+    if not isinstance(query, np.ndarray):
+        query = query / query.norm(dim=-1, keepdim=True)
+        data = data / data.norm(dim=-1, keepdim=True)
+        # Convert to numpy arrays
+        query_np = query.cpu().numpy().squeeze().flatten()
+        data_np = data.cpu().numpy().squeeze()
+    else:
+        query = query / np.linalg.norm(query, axis=1, keepdims=True)
+        data = data / np.linalg.norm(data, axis=1, keepdims=True)
+        # Convert to numpy arrays
+        query_np = query.squeeze().flatten()
+        data_np = data.squeeze()
+        
     # Create FAISS index
-    sql = SQL()
-    sql.connect()
+    if sql is None:
+        sql = SQL()
+        sql.connect()
     # add embedding
     sql.add_vectors(data_np.T)
     # Create an IVFFLAT index
@@ -125,23 +158,32 @@ def ivfflat(query, data, topk=5, threshold=None):
         
     return topk_indices, topk_scores
 
-def hnsw(query, data, topk=5, threshold=None):
+def hnsw(query, data, topk=5, threshold=None, sql=None):
     """
     Compute HNSW similarity.
     """
-    data = data / data.norm(dim=-1, keepdim=True)
-    query = query / query.norm(dim=-1, keepdim=True)
-    
-    # Convert to numpy arrays
-    query_np = query.cpu().numpy().squeeze().flatten()
-    data_np = data.cpu().numpy().squeeze()
+    if not isinstance(query, np.ndarray):
+        query = query / query.norm(dim=-1, keepdim=True)
+        data = data / data.norm(dim=-1, keepdim=True)
+        # Convert to numpy arrays
+        query_np = query.cpu().numpy().squeeze().flatten()
+        data_np = data.cpu().numpy().squeeze()
+    else:
+        query = query / np.linalg.norm(query, axis=1, keepdims=True)
+        data = data / np.linalg.norm(data, axis=1, keepdims=True)
+        # Convert to numpy arrays
+        query_np = query.squeeze().flatten()
+        data_np = data.squeeze()
+        
     # Create FAISS index
-    sql = SQL()
-    sql.connect()
+    if sql is None:
+        sql = SQL()
+        sql.connect()
     # add embedding
     sql.add_vectors(data_np.T)
     # Create an HNSW index
     topk_indices, topk_scores = sql.hnsw(query_np, k=topk)
+    topk_scores = 1 - topk_scores
     
     # Filter out values below the threshold
     if threshold is not None:

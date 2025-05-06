@@ -2,7 +2,7 @@ import subprocess
 import time
 import psycopg
 import numpy as np
-
+from tqdm.notebook import tqdm
 
 class SQL:
     def __init__(self):
@@ -29,7 +29,6 @@ class SQL:
         # Add vectors to the database
         with self.conn.cursor() as cursor:
             self.dim = embedding.shape[0]
-            print(f"embedding.shape: {embedding.shape}")
             cursor.execute("CREATE EXTENSION IF NOT EXISTS vector;")
             # check if the table exists
             self.table_name = f"vecs{self.dim}"
@@ -37,7 +36,7 @@ class SQL:
             exists = cursor.fetchone()[0]
             if not exists:
                 cursor.execute(f"CREATE TABLE {self.table_name} (id SERIAL PRIMARY KEY, embedding VECTOR({self.dim}));")
-                for i in range(embedding.shape[1]):
+                for i in tqdm(range(embedding.shape[1])):
                     cursor.execute(f"INSERT INTO {self.table_name} (embedding) VALUES (%s);", (embedding[:,i].tolist(),))
             self.conn.commit()
             
@@ -45,8 +44,6 @@ class SQL:
         # Create an IVFFLAT index
         with self.conn.cursor() as cursor:
             # check if index exists
-            print(f"query.shape: {query.shape}")
-            print(f"dims : {self.dim}")
             cursor.execute(f"SELECT * FROM pg_indexes WHERE tablename = '{self.table_name}' AND indexname = '{self.table_name}_embedding_idx';")
             exists = cursor.fetchone()
             if not exists:

@@ -43,12 +43,12 @@ class Sentences:
         )
         return query_embeddings
 
-    def get_top_k_documents(self, query, similarity_fn, save_path=None, precompute_path=None, threshold=None):
+    def get_top_k_documents(self, query, similarity_fn, save_path=None, precompute_path=None, threshold=None, **kwargs):
         document_embeddings, documents = self.compute_document_features(save_path=save_path, precompute_path=precompute_path)
         query_embeddings = self.compute_query_features(query)
         query_embeddings = query_embeddings.reshape(1, -1)
         
-        topk_ind, topk_sim = similarity_fn(query_embeddings, document_embeddings, threshold=threshold)
+        topk_ind, topk_sim = similarity_fn(query_embeddings, document_embeddings, threshold=threshold, **kwargs)
 
         if len(topk_ind.shape) == 1:
             if topk_ind.shape[0] == 0:

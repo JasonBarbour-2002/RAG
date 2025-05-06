@@ -62,15 +62,16 @@ class CLIP:
 
         return self.text_features
 
-    def get_image_times(self, query, similarity,  path="", save_path=None, precompute_path=None, threshold=None):  
+    def get_image_times(self, query, similarity,  path="", save_path=None, precompute_path=None, threshold=None, **kwargs):
         video_info = np.loadtxt(path + "/video_info.csv", delimiter=",", skiprows=1)
         self.compute_image_features(path, save_path, precompute_path=precompute_path)
         self.compute_query_features(query)
         # Compute similarity
-        topk_ind, topk_sim = similarity(self.text_features, self.image_features, threshold=threshold)
+        topk_ind, topk_sim = similarity(self.text_features, self.image_features, threshold=threshold, **kwargs)
         # Check if the topk_ind is empty   
-        if len(topk_ind) == 0:
-            return topk_ind, topk_sim
+        if len(topk_ind.shape) == 1:
+            if topk_ind.shape[0] == 0:
+                return topk_ind, topk_sim
         # Get the topk image times
         topk_times = video_info[topk_ind]
         if len(topk_times.shape) == 1:
