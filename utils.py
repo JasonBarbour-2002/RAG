@@ -81,49 +81,6 @@ def faiss_similarity(query, data, topk=5, threshold=None, index=None):
         similarities = similarities[mask]
     return indices, similarities
 
-def bm25_similarity(query, data, topk=5, threshold=0.25):
-    """
-    Compute BM25 similarity.
-    """
-    bm25 = BM25Okapi(data)
-    scores = bm25.get_scores(query)
-    
-    # Get topk indices
-    topk_indices = np.argsort(scores)[-topk:][::-1]
-    topk_scores = scores[topk_indices]
-    # Filter out values below the threshold
-    if threshold is not None:
-        mask = topk_scores > threshold
-        topk_indices = topk_indices[mask]
-        topk_scores = topk_scores[mask]
-    return topk_indices, topk_scores
-
-def tfidf_similarity(query, data, topk=5, threshold=0.25):
-    """
-    Compute TF-IDF similarity.
-    """
-    vectorizer = TfidfVectorizer()
-    tfidf_matrix = vectorizer.fit_transform(data)
-    
-    # Transform the query
-    query_vector = vectorizer.transform([query])
-    
-    # Compute cosine similarity
-    cosine_similarities = cosine_similarity(query_vector, tfidf_matrix).flatten()
-    
-    # Get topk indices
-    topk_indices = np.argsort(cosine_similarities)[-topk:][::-1]
-    topk_scores = cosine_similarities[topk_indices]
-    
-    # Filter out values below the threshold
-    if threshold is not None:
-        mask = topk_scores > threshold
-        topk_indices = topk_indices[mask]
-        topk_scores = topk_scores[mask]
-        
-    return topk_indices, topk_scores
-
-
 def ivfflat(query, data, topk=5, threshold=None, sql=None):
     """
     Compute Ivfflat similarity.
@@ -193,3 +150,44 @@ def hnsw(query, data, topk=5, threshold=None, sql=None):
     return topk_indices, topk_scores
 
         
+def bm25_similarity(query, data, topk=5, threshold=0.25):
+    """
+    Compute BM25 similarity.
+    """
+    bm25 = BM25Okapi(data)
+    scores = bm25.get_scores(query)
+    
+    # Get topk indices
+    topk_indices = np.argsort(scores)[-topk:][::-1]
+    topk_scores = scores[topk_indices]
+    # Filter out values below the threshold
+    if threshold is not None:
+        mask = topk_scores > threshold
+        topk_indices = topk_indices[mask]
+        topk_scores = topk_scores[mask]
+    return topk_indices, topk_scores
+
+def tfidf_similarity(query, data, topk=5, threshold=0.25):
+    """
+    Compute TF-IDF similarity.
+    """
+    vectorizer = TfidfVectorizer()
+    tfidf_matrix = vectorizer.fit_transform(data)
+    
+    # Transform the query
+    query_vector = vectorizer.transform([query])
+    
+    # Compute cosine similarity
+    cosine_similarities = cosine_similarity(query_vector, tfidf_matrix).flatten()
+    
+    # Get topk indices
+    topk_indices = np.argsort(cosine_similarities)[-topk:][::-1]
+    topk_scores = cosine_similarities[topk_indices]
+    
+    # Filter out values below the threshold
+    if threshold is not None:
+        mask = topk_scores > threshold
+        topk_indices = topk_indices[mask]
+        topk_scores = topk_scores[mask]
+        
+    return topk_indices, topk_scores

@@ -69,3 +69,46 @@ plt.title("Negative Sentences")
 plt.savefig("Results/negative_sent.png")
 plt.show()
 # %%
+fig, ax = plt.subplots(2, 2, figsize=(10, 10))
+ax[0, 0].bar(
+    pos_clip_sum.index,
+    pos_clip_sum.values,
+    label="Positive Clip",
+    color="blue"
+)
+ax[0, 0].set_ylabel("True Positive")
+ax[0, 0].set_title("Positive Clip")
+ax[0, 0].set_ylim(0, 10)
+
+ax[0, 1].bar(
+    neg_clip_sum.index,
+    neg_clip_sum.values,
+    label="Negative Clip",
+    color="red",
+)
+ax[0, 1].set_ylabel("True Negative")
+ax[0, 1].set_title("Negative Clip")
+ax[0, 1].set_ylim(0, 5)
+
+ax[1, 0].bar(
+    pos_sent_sum.index,
+    pos_sent_sum.values,
+    label="Positive Sent",
+    color="green"
+)
+ax[1, 0].set_ylabel("True Positive")
+ax[1, 0].set_title("Positive Sentences")
+ax[1, 0].set_ylim(0, 10)
+
+ax[1, 1].bar(
+    neg_sent_sum.index,
+    neg_sent_sum.values,
+    label="Negative Sent",
+    color="orange",
+)
+ax[1, 1].set_ylabel("True Negative")
+ax[1, 1].set_title("Negative Sentences")
+ax[1, 1].set_ylim(0, 5)
+plt.tight_layout()
+plt.savefig("Results/positive_negative.png")
+plt.show()
